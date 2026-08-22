@@ -76,9 +76,9 @@ No Supabase project is linked from this repository, so migrations and functions 
 
 The intended production project name is `IoT Borehole Control`. Creation was attempted in the connected Supabase organization, but the account currently has two active free projects and Supabase rejected a third. Do not reuse an unrelated project merely to bypass that limit.
 
-## Existing production Site
+## Hosting status
 
-The existing Site is `Borehole Control` at <https://borehole-control.nujoka.chatgpt.site/> with project ID `appgprj_6a88d464f74481919ca40702644620c7`. Its source binding is recorded in `.openai/hosting.json`. Production deployment remains blocked until the dedicated Supabase project exists and the Site can be configured with that project's URL and publishable key.
+Production deployment remains blocked until the dedicated Supabase project exists and the application can be configured with that project's URL and publishable key.
 
 ## Android
 
