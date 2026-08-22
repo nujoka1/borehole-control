@@ -1,6 +1,9 @@
-const CACHE = 'kahalla-shell-v1'
+const CACHE = 'kahalla-shell-v2'
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING') self.skipWaiting()
+})
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(['/'])))
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(['./'])))
   self.skipWaiting()
 })
 self.addEventListener('activate', event => {
@@ -9,5 +12,5 @@ self.addEventListener('activate', event => {
 })
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || new URL(event.request.url).origin !== location.origin) return
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request).then(response => response ?? caches.match('/'))))
+  event.respondWith(fetch(event.request).catch(() => caches.match(event.request).then(response => response ?? caches.match('./'))))
 })
