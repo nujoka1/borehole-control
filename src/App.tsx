@@ -61,7 +61,7 @@ function Login({ theme, toggleTheme }: { theme: Theme; toggleTheme: () => void }
   }
   return <main className="auth-page">
     <button className="icon-button auth-theme" onClick={toggleTheme} aria-label={`Use ${theme === 'light' ? 'dark' : 'light'} mode`}>{theme === 'light' ? <Moon/> : <Sun/>}</button>
-    <section className="auth-visual"><Brand/><div><span className="auth-orbit"><Droplets/></span><h1>Water control,<br/>wherever you are.</h1><p>Monitor tank levels and protect your pump with safe, real-time control.</p></div><small>Secure IoT water management</small></section>
+    <section className="auth-visual"><Brand/><div className="auth-message"><img className="auth-illustration" src="./brand-illustration.png" alt="Connected borehole tank and pump"/><h1>Water control,<br/>wherever you are.</h1><p>Monitor tank levels and protect your pump with safe, real-time control.</p></div><small>Secure IoT water management</small></section>
     <form className="auth-card" onSubmit={submit}>
       <div className="auth-mobile-brand"><Brand/></div><p className="eyebrow">Protected access</p><h2>Welcome back</h2><p>Sign in with your assigned administrator, operator or viewer account.</p>
       <label>Email address<input required type="email" autoComplete="email" placeholder="name@example.com" value={email} onChange={event => setEmail(event.target.value)} /></label>
@@ -187,7 +187,7 @@ function TankChart({ data }: { data: { time: string; level: number | null }[] })
   return <div className="tank-chart"><span>100%</span><svg viewBox="0 0 1000 260" role="img" aria-label={`Tank level from ${valid[0].level.toFixed(0)} to ${valid.at(-1)!.level.toFixed(0)} percent`}><line x1="0" y1="20" x2="1000" y2="20"/><line x1="0" y1="135" x2="1000" y2="135"/><line x1="0" y1="250" x2="1000" y2="250"/><polyline points={points}/></svg><small>{formatTime(valid[0].time)}</small><small>{formatTime(valid.at(-1)!.time)}</small></div>
 }
 
-function Brand() { return <div className="brand"><span><Droplets/></span><b>Borehole Control</b></div> }
+function Brand() { return <div className="brand"><img src="./icon.svg" alt=""/><b>Borehole Control</b></div> }
 function Nav({ tab, current, set, icon, label }: { tab: Tab; current: Tab; set: (tab: Tab) => void; icon: React.ReactNode; label: string }) { return <button className={current === tab ? 'active' : ''} aria-current={current === tab ? 'page' : undefined} onClick={() => set(tab)}>{icon}<span>{label}</span></button> }
 function PageTitle({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) { return <header className="page-heading"><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p>{description}</p></header> }
 function SettingRow({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) { return <div className="setting-row"><span>{icon}</span><div><b>{title}</b><small>{detail}</small></div></div> }

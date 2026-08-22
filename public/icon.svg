@@ -1,5 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#087b63"/>
-  <path d="M256 76c-48 74-122 156-122 246a122 122 0 0 0 244 0c0-90-74-172-122-246Z" fill="#fff"/>
-  <path d="M204 326c16 34 42 49 80 45" fill="none" stroke="#61d9bf" stroke-width="28" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Kahalla Borehole Control</title>
+  <defs><linearGradient id="bg" x1="72" y1="44" x2="440" y2="468" gradientUnits="userSpaceOnUse"><stop stop-color="#176fd1"/><stop offset="1" stop-color="#073b84"/></linearGradient><linearGradient id="water" x1="214" y1="235" x2="301" y2="378" gradientUnits="userSpaceOnUse"><stop stop-color="#66d9ff"/><stop offset="1" stop-color="#1593e8"/></linearGradient></defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M148 172c0-31 48-56 108-56s108 25 108 56v179c0 31-48 56-108 56s-108-25-108-56V172Z" fill="#fff"/>
+  <ellipse cx="256" cy="172" rx="108" ry="56" fill="#eaf7ff"/>
+  <path d="M148 255c28 18 66 27 108 27s80-9 108-27v96c0 31-48 56-108 56s-108-25-108-56v-96Z" fill="url(#water)"/>
+  <path d="M151 233c27 17 64 27 105 27s78-10 105-27M151 318c27 17 64 27 105 27s78-10 105-27" fill="none" stroke="#0b5ead" stroke-opacity=".32" stroke-width="10"/>
+  <path d="M388 167c25 12 42 36 45 64M386 207c12 7 19 18 21 32" fill="none" stroke="#70f1dc" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="386" cy="250" r="10" fill="#70f1dc"/>
 </svg>
