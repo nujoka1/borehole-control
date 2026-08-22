@@ -1,0 +1,12 @@
+.pio/
+firmware/include/secrets.h
+node_modules/
+dist/
+.env
+.env.local
+android/.gradle/
+android/app/build/
+IOT Borehole Switch_100746.c
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts

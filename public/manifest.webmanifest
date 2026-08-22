@@ -1,0 +1,12 @@
+{
+  "name": "Kahalla Borehole Control",
+  "short_name": "Kahalla Pump",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f2f7f5",
+  "theme_color": "#087b63",
+  "description": "Secure borehole tank and pump monitoring",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

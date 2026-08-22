@@ -1,0 +1,9 @@
+project_id = "kahalla-borehole-control"
+
+# ESP32 requests authenticate inside these functions with a per-device token.
+# Dashboard/user functions must retain normal Supabase JWT verification.
+[functions.borehole-telemetry]
+verify_jwt = false
+
+[functions.borehole-commands]
+verify_jwt = false
