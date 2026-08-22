@@ -1,5 +1,7 @@
 .pio/
 firmware/include/secrets.h
+arduinoe files/Kahalla_Borehole_Control/secrets.h
+arduinoe files/*.zip
 node_modules/
 dist/
 .env

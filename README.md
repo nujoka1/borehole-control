@@ -1,47 +1,101 @@
-# Kahalla Borehole Control
+<p align="center">
+  <img src="public/logo-horizontal.svg" width="520" alt="Kahalla Borehole Control" />
+</p>
 
-A production-oriented replacement for the Blynk-based ESP32 borehole controller. The workspace contains safe local pump-control firmware, fallback captive-portal Wi-Fi provisioning, authenticated HTTPS telemetry and commands, a Supabase backend, a responsive React PWA, and a Capacitor Android application.
+<p align="center">
+  Local-first ESP32 tank and pump control with secure web and Android monitoring.
+</p>
 
-The original `IOT Borehole Switch_100746.c` is retained unchanged as the hardware and behavior baseline.
+<p align="center">
+  <a href="https://nujoka1.github.io/borehole-control/"><strong>Open live dashboard</strong></a>
+  · <a href="docs/CLIENT_FLASHING_GUIDE.md">Flash an ESP32</a>
+  · <a href="docs/USER_GUIDE.md">User guide</a>
+  · <a href="docs/PROJECT_WRITEUP.md">Project write-up</a>
+</p>
+
+![Kahalla IoT borehole control product overview](docs/images/system-hero.png)
+
+## Overview
+
+Kahalla Borehole Control replaces the original Blynk interface with a complete
+IoT product stack:
+
+- ESP32 firmware with local automatic control and safe failure behavior
+- ultrasonic tank-level measurement and configurable calibration
+- authenticated Supabase telemetry and expiring device commands
+- responsive React PWA with light and dark themes
+- Capacitor Android application
+- Arduino IDE and PlatformIO delivery paths
+- client flashing, wiring, operation and commissioning documentation
+
+Automatic pump decisions remain on the ESP32. A temporary internet or cloud
+failure cannot remove the local upper-threshold stop logic.
+
+## System architecture
+
+![Kahalla Borehole Control architecture](docs/images/system-architecture.svg)
+
+The dashboard submits authorized commands to Supabase. The ESP32 polls for those
+commands over TLS, validates them against local safety interlocks, acknowledges
+the result and continues autonomous control when offline.
+
+## Current status
+
+| Requirement | Status | Verification |
+|---|---|---|
+| Native control logic tests | PASS | Automated Unity tests |
+| PlatformIO ESP32 build | PASS | `esp32dev` release image generated |
+| Arduino IDE-compatible build | PASS | Compiled for ESP32 Dev Module |
+| Dashboard tests/type/lint/build | PASS | Local quality gates |
+| GitHub Pages dashboard | PASS | [Live deployment](https://nujoka1.github.io/borehole-control/) |
+| Supabase backend and RLS | PASS | Production project deployed and security advisors clear when checked |
+| Android debug APK | PASS | Built and v1/v2 signature verified |
+| Physical ESP32 and sensor behavior | NOT VERIFIED | Real hardware required |
+| Pump electrical commissioning | NOT VERIFIED | Qualified electrician required |
+
+Software build success is not evidence that relay polarity, sensor voltage,
+contactor wiring, tank geometry or pump protection is correct.
 
 ## Confirmed pin contract
 
 | Function | GPIO | Firmware behavior |
 |---|---:|---|
-| Ultrasonic ECHO | 14 | Input; must not exceed ESP32 input voltage |
+| Ultrasonic ECHO | 14 | Input; use ESP32-safe voltage |
 | Ultrasonic TRIG | 27 | Output |
-| Buzzer | 26 | Active high assumption |
-| Status LED | 25 | Output |
-| Pump relay | 33 | Active high assumption from original code |
+| Buzzer | 26 | Active-high assumption |
+| Status LED | 25 | Connected state / offline blink |
+| Pump relay command | 33 | Active-high assumption |
 
-Relay polarity and the ultrasonic ECHO voltage remain **not physically verified**.
+See the full [installation and wiring guide](docs/INSTALLATION_AND_WIRING.md).
 
-## Software boundaries
+## Firmware
 
-- The ESP32 performs automatic control locally. Internet availability never decides whether the pump should stop at the upper limit.
-- The dashboard inserts authorized, expiring commands. The ESP32 polls for them over TLS.
-- Device tokens are unique per unit. Only bcrypt hashes are stored in Postgres.
-- Users see only devices assigned through `borehole_device_members` policies.
-- Invalid sensing and boot both request the safe relay-off state.
-- The configured tank depth is the usable water depth. The 10 cm mounting offset represents the sensor-to-full-water clearance; the valid sensor-to-bottom distance is therefore `usable depth + offset`.
-- The firmware uses five ultrasonic samples per median reading, three validated readings before enabling control, stale-reading rejection and a three-failure sensor lockout.
-
-## ESP32 build
-
-Copy the ignored credential template and enter per-device values:
+### PlatformIO
 
 ```bash
 cp firmware/include/secrets.example.h firmware/include/secrets.h
 /home/nujoka/.platformio/penv/bin/pio run -e esp32dev
 ```
 
-The HTTPS root CA must be checked against the deployed endpoint before flashing. Do not use an insecure TLS client in production.
+Libraries and framework versions are pinned in `platformio.ini`. Never replace
+TLS verification with an insecure client.
 
-On first boot, the firmware exposes a temporary access point named `Kahalla-Pump-xxxx`. Connect to it with a phone and enter the installation Wi-Fi credentials. Stored credentials are retried on later boots.
+### Arduino IDE
 
-The ignored local `secrets.h` first attempts the installation network (`Default` in the current local setup). Only after a 20-second unsuccessful primary attempt does the non-blocking captive portal start. Credentials are never logged.
+Open:
 
-## Dashboard
+```text
+arduinoe files/Kahalla_Borehole_Control/Kahalla_Borehole_Control.ino
+```
+
+Install `esp32 by Espressif Systems`, `ArduinoJson` and `WiFiManager`. Keep all
+files in the sketch folder together. The real `secrets.h` is intentionally
+ignored and must be delivered privately.
+
+For a non-technical client, use the merged full binary and the
+[client flashing guide](docs/CLIENT_FLASHING_GUIDE.md).
+
+## Dashboard development
 
 ```bash
 cp .env.example .env.local
@@ -49,49 +103,59 @@ npm install
 npm run dev
 ```
 
-Only the Supabase URL and publishable key belong in `VITE_` variables. Never expose a service-role or secret key to the PWA.
-
 Quality gates:
 
 ```bash
 npm test
 npm run typecheck
 npm run lint
-npm run build
+npm run build -- --base=/borehole-control/
 ```
 
-After deploying the backend and provisioning a development device, live data can be exercised without an ESP32:
-
-```bash
-BOREHOLE_TELEMETRY_URL=https://PROJECT.supabase.co/functions/v1/borehole-telemetry \
-BOREHOLE_DEVICE_CODE=BHS_DEV BOREHOLE_DEVICE_TOKEN=YOUR_DEV_TOKEN \
-npm run simulate:device
-```
-
-## Supabase
-
-Apply migrations in order, deploy `borehole-telemetry` and `borehole-commands`, then create each device with a long random token whose bcrypt hash is stored in `borehole_devices.token_hash`. Assign users through `borehole_device_members` and add one matching `borehole_device_settings` row.
-
-No Supabase project is linked from this repository, so migrations and functions are not deployed automatically.
-
-The intended production project name is `IoT Borehole Control`. Creation was attempted in the connected Supabase organization, but the account currently has two active free projects and Supabase rejected a third. Do not reuse an unrelated project merely to bypass that limit.
-
-## Hosting status
-
-Production deployment remains blocked until the dedicated Supabase project exists and the application can be configured with that project's URL and publishable key.
+Only a Supabase URL and publishable key belong in frontend `VITE_` variables.
+Never expose a service-role key in the dashboard or APK.
 
 ## Android
-
-Build the debug APK from the same frontend:
 
 ```bash
 npm run android:apk
 ```
 
-The APK is generated at `android/app/build/outputs/apk/debug/app-debug.apk`. It is debug-signed only; release signing requires an owner-controlled keystore and must not reuse the debug certificate.
+The generated debug APK is located at
+`android/app/build/outputs/apk/debug/app-debug.apk`. Debug signing is appropriate
+for testing only. A production release requires an owner-controlled keystore and
+release process.
 
-The original C file contains a historical Blynk token. Rotate that token before sharing or publishing this workspace; the replacement firmware does not use it.
+## Repository map
 
-## Verification status
+```text
+firmware/                 ESP32 PlatformIO source and control tests
+arduinoe files/           Arduino IDE-compatible client sketch
+src/                      React dashboard
+supabase/                 Database migrations and Edge Functions
+android/                  Capacitor Android project
+public/                   PWA, icon and brand assets
+docs/                     Write-up, guides, diagrams and checklists
+.github/workflows/        GitHub Pages CI/CD
+```
 
-Software compilation and tests do not validate relay polarity, ECHO voltage, tank geometry, acoustic behavior, contactor wiring, pump current, dry-run protection or real network reliability. Those require the exact hardware and a controlled hardware-in-the-loop test before connecting a pump.
+The supplied `IOT Borehole Switch_100746.c` is retained as the legacy pin and
+behavior baseline. It contains a historical Blynk credential; treat that token
+as exposed and rotate it before any Blynk reuse.
+
+## Documentation
+
+- [Project write-up](docs/PROJECT_WRITEUP.md)
+- [Client flashing guide](docs/CLIENT_FLASHING_GUIDE.md)
+- [Installation and wiring](docs/INSTALLATION_AND_WIRING.md)
+- [Dashboard user guide](docs/USER_GUIDE.md)
+- [Deployment guide](docs/DEPLOYMENT.md)
+- [Verification checklist](docs/VERIFICATION_CHECKLIST.md)
+- [Security policy](SECURITY.md)
+
+## Safety boundary
+
+The repository covers the low-voltage control system. It does not replace a
+properly rated contactor, overload device, breaker, earthing, emergency isolation
+or qualified electrical work. Commission the installation through controlled
+sensor, relay, offline and full-cycle testing before connecting a real pump.
