@@ -4,6 +4,7 @@ node_modules/
 dist/
 .env
 .env.local
+supabase/.temp/
 android/.gradle/
 android/app/build/
 IOT Borehole Switch_100746.c
