@@ -1,11 +1,11 @@
 {
-  "name": "Kahalla Borehole Control",
-  "short_name": "Kahalla Pump",
+  "name": "Smart Water Tank",
+  "short_name": "Water Tank",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#071326",
   "theme_color": "#176fd1",
-  "description": "Secure borehole tank and pump monitoring",
+  "description": "Automatic smart water tank and pump monitoring",
   "icons": [
     { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

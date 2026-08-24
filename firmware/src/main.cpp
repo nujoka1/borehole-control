@@ -240,7 +240,7 @@ void connectWifi() {
 void maintainWifi(uint32_t now) {
   if (WiFi.status() == WL_CONNECTED) return;
   if (!configPortalStarted && now - wifiStartedAt >= WIFI_PRIMARY_TIMEOUT_MS) {
-    const String accessPoint = String("Kahalla-Pump-") +
+    const String accessPoint = String("Kachalla-Tank-") +
                                String((uint32_t)(ESP.getEfuseMac() & 0xFFFF), HEX);
     configPortalStarted = wifiManager.startConfigPortal(accessPoint.c_str());
   }

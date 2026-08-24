@@ -2,7 +2,7 @@
 
 ## Abstract
 
-The Kahalla IoT Borehole Control System combines deterministic ESP32 pump
+The Smart Water Tank system for Kachalla combines deterministic ESP32 pump
 control with authenticated remote monitoring. An ultrasonic sensor estimates
 tank level, while local hysteresis logic starts and stops a relay command between
 configurable thresholds. A React dashboard and Android application present

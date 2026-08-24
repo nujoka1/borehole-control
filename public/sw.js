@@ -1,4 +1,4 @@
-const CACHE = 'kahalla-shell-v2'
+const CACHE = 'smart-water-tank-shell-v3'
 self.addEventListener('message', event => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting()
 })

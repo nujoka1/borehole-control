@@ -1,6 +1,7 @@
 # Client flashing guide
 
-This guide is for installing the prepared Kahalla Borehole Control firmware on
+This guide is for installing the prepared Smart Water Tank firmware for the
+Kachalla water system on
 an ESP32 Dev Module. It does not cover mains pump wiring.
 
 ## Choose one flashing method
@@ -46,7 +47,7 @@ PlatformIO framework used by the main firmware build.
 1. Power the low-voltage controller without connecting the pump mains circuit.
 2. Open Serial Monitor at `115200` baud.
 3. If the configured Wi-Fi cannot be reached within 20 seconds, connect a phone
-   to the `Kahalla-Pump-xxxx` access point.
+   to the `Kachalla-Tank-xxxx` access point.
 4. Select the installation Wi-Fi network and enter its password.
 5. Confirm the status LED changes to the connected state.
 6. Sign in to the dashboard and confirm the device eventually becomes online.

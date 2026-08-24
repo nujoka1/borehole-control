@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/logo-horizontal.svg" width="520" alt="Kahalla Borehole Control" />
+  <img src="public/logo-horizontal.svg" width="520" alt="Smart Water Tank" />
 </p>
 
 <p align="center">
@@ -13,11 +13,12 @@
   · <a href="docs/PROJECT_WRITEUP.md">Project write-up</a>
 </p>
 
-![Kahalla IoT borehole control product overview](docs/images/system-hero.png)
+![Smart Water Tank product overview](docs/images/system-hero.png)
 
 ## Overview
 
-Kahalla Borehole Control replaces the original Blynk interface with a complete
+Smart Water Tank, built for the Kachalla water system, replaces the original
+Blynk interface with a complete
 IoT product stack:
 
 - ESP32 firmware with local automatic control and safe failure behavior
@@ -33,7 +34,7 @@ failure cannot remove the local upper-threshold stop logic.
 
 ## System architecture
 
-![Kahalla Borehole Control architecture](docs/images/system-architecture.svg)
+![Smart Water Tank architecture](docs/images/system-architecture.svg)
 
 The dashboard submits authorized commands to Supabase. The ESP32 polls for those
 commands over TLS, validates them against local safety interlocks, acknowledges
@@ -152,6 +153,7 @@ as exposed and rotate it before any Blynk reuse.
 - [Deployment guide](docs/DEPLOYMENT.md)
 - [Verification checklist](docs/VERIFICATION_CHECKLIST.md)
 - [Security policy](SECURITY.md)
+- [Supabase administrator handover](docs/SUPABASE_ADMIN_HANDOVER.md)
 
 ## Safety boundary
 

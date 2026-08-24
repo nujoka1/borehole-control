@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">Kahalla Borehole Control</title>
+  <title id="title">Smart Water Tank</title>
   <defs><linearGradient id="bg" x1="72" y1="44" x2="440" y2="468" gradientUnits="userSpaceOnUse"><stop stop-color="#176fd1"/><stop offset="1" stop-color="#073b84"/></linearGradient><linearGradient id="water" x1="214" y1="235" x2="301" y2="378" gradientUnits="userSpaceOnUse"><stop stop-color="#66d9ff"/><stop offset="1" stop-color="#1593e8"/></linearGradient></defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
   <path d="M148 172c0-31 48-56 108-56s108 25 108 56v179c0 31-48 56-108 56s-108-25-108-56V172Z" fill="#fff"/>
