@@ -14,7 +14,7 @@ type InfoPage = 'about' | 'guide' | 'terms' | null
 
 const ADMIN_EMAIL = 'ahmadkgaladima@gmail.com'
 const now = new Date().toISOString()
-const DEMO_DEVICE: Device = { id: 'preview', device_code: 'PREVIEW', name: 'Main Tank', location_name: 'Kachalla water system', firmware_version: '1.0.0', is_online: true, last_seen_at: now }
+const DEMO_DEVICE: Device = { id: 'preview', device_code: 'PREVIEW', name: 'Main Tank', location_name: null, firmware_version: '1.0.0', is_online: true, last_seen_at: now }
 const DEMO_READING: Reading = { id: 1, device_id: 'preview', received_at: now, uptime_ms: 86400000, distance_cm: 66, water_depth_cm: 144, level_percent: 72, sensor_status: 'healthy', pump_state: 'on', control_mode: 'automatic', fault_code: null, wifi_rssi_dbm: -54, firmware_version: '1.0.0' }
 const DEMO_SETTINGS: DeviceSettings = { device_id: 'preview', lower_limit_percent: 60, upper_limit_percent: 95, usable_tank_depth_cm: 200, mounting_offset_cm: 10, maximum_pump_runtime_seconds: 1800, telemetry_interval_seconds: 10 }
 const DEMO_EVENTS: DeviceEvent[] = [{ id: 1, event_type: 'pump_started', severity: 'info', message: 'Pump started automatically', created_at: now }]
@@ -142,7 +142,7 @@ function Dashboard({ userId, userEmail, theme, toggleTheme }: { userId: string |
     <main className="app-content">
       {preview && <div className="preview-banner"><Info/>Interactive preview — connect Supabase for the assigned tank.</div>}
       {error && <div className="banner error"><AlertTriangle/><span>{error}</span><button onClick={() => void load()}><RefreshCw/>Retry</button></div>}
-      {tab === 'home' && <Home device={device} reading={reading} settings={settings} events={events} online={online} level={level}/>}
+      {tab === 'home' && <Home reading={reading} settings={settings} events={events} online={online} level={level}/>}
       {tab === 'history' && <HistoryPage chart={chart} history={history}/>}
       {tab === 'alerts' && <Alerts events={events} commands={commands} reading={reading} settings={settings} online={online}/>}
       {tab === 'settings' && <SettingsPage settings={settings} device={device} userEmail={userEmail} theme={theme} toggleTheme={toggleTheme} send={send} showInfo={setInfo}/>}
@@ -153,13 +153,13 @@ function Dashboard({ userId, userEmail, theme, toggleTheme }: { userId: string |
   </div>
 }
 
-function Home({ device, reading, settings, events, online, level }: { device: Device | null; reading: Reading | null; settings: DeviceSettings | null; events: DeviceEvent[]; online: boolean; level: number | null }) {
+function Home({ reading, settings, events, online, level }: { reading: Reading | null; settings: DeviceSettings | null; events: DeviceEvent[]; online: boolean; level: number | null }) {
   const pumpOn = reading?.pump_state === 'on'
   const depth = settings?.usable_tank_depth_cm
   const status = tankStatus(level, reading, settings, online)
   const waterHeight = reading?.water_depth_cm
   return <>
-    <section className="welcome-row"><div><p>Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}</p><h1>Tank Overview</h1><small>{device?.location_name ?? 'Kachalla water system'}</small></div><div className={`status-pill ${online ? 'online' : 'offline'}`}>{online ? <Wifi/> : <WifiOff/>}{online ? 'Device online' : 'Device offline'}</div></section>
+    <section className="welcome-row"><div><h1>Tank Overview</h1></div><div className={`status-pill ${online ? 'online' : 'offline'}`}>{online ? <Wifi/> : <WifiOff/>}{online ? 'Device online' : 'Device offline'}</div></section>
     <section className="tank-overview card">
       <div className="tank-visual"><div className="tank-shell"><div className="tank-shine"/><div className="water" style={{ height: `${level ?? 0}%` }}/></div><div className="depth-scale"><span>{depth ?? '—'} cm</span><span>{depth ? Math.round(depth / 2) : '—'} cm</span><span>0 cm</span></div></div>
       <div className="tank-copy"><p className="eyebrow">Water level</p><strong>{level === null ? '—' : `${Math.round(level)}%`}</strong><p>{waterHeight?.toFixed(0) ?? '—'} cm of {depth ?? '—'} cm</p><div className="tank-mini-grid"><div><b>{waterHeight?.toFixed(0) ?? '—'} cm</b><small>Water height</small></div><div><b>{depth ?? '—'} cm</b><small>Tank depth</small></div></div></div>
