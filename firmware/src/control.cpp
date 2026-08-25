@@ -50,7 +50,6 @@ Measurement calculateMeasurement(float distance_cm, bool echo_received,
 PumpState evaluateAutomaticControl(const Measurement &measurement,
                                    const ControlConfig &config,
                                    ControlState &state, uint32_t now_ms) {
-  if (state.mode != ControlMode::Automatic) return state.pump;
   if (measurement.status != SensorStatus::Healthy) {
     state.fault = "sensor_invalid";
     return PumpState::Off;

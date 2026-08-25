@@ -143,8 +143,7 @@ void uploadTelemetry() {
   }
   body["sensor_status"] = sensorStatusName(latestMeasurement.status);
   body["pump_state"] = controlState.pump == PumpState::On ? "on" : "off";
-  body["control_mode"] =
-      controlState.mode == ControlMode::Automatic ? "automatic" : "manual";
+  body["control_mode"] = "automatic";
   body["fault_code"] = controlState.fault;
   body["wifi_rssi_dbm"] = WiFi.RSSI();
   body["firmware_version"] = FIRMWARE_VERSION;
@@ -184,29 +183,6 @@ void processCommandResponse(const String &response, uint32_t now) {
     } else {
       message = "invalid_configuration";
     }
-  } else if (strcmp(type, "set_mode") == 0) {
-    const char *mode = command["mode"] | "automatic";
-    controlState.mode = strcmp(mode, "manual") == 0
-                            ? ControlMode::Manual
-                            : ControlMode::Automatic;
-    accepted = true;
-    message = "mode_applied";
-  } else if (strcmp(type, "pump") == 0 &&
-             controlState.mode == ControlMode::Manual) {
-    const char *state = command["state"] | "off";
-    const bool startRequested = strcmp(state, "on") == 0;
-    if (startRequested && (latestMeasurement.status != SensorStatus::Healthy ||
-                           now - lastValidMeasurementAt > SENSOR_STALE_AFTER_MS ||
-                           consecutiveValidSamples < REQUIRED_VALID_SAMPLES ||
-                           controlState.runtime_lockout ||
-                           latestMeasurement.level_percent >=
-                               config.upper_limit_percent)) {
-      message = "pump_start_rejected_by_safety_interlock";
-    } else {
-      applyPumpState(startRequested ? PumpState::On : PumpState::Off, now);
-      accepted = true;
-      message = "pump_command_applied";
-    }
   } else if (strcmp(type, "clear_fault") == 0) {
     const bool safe = latestMeasurement.status == SensorStatus::Healthy &&
                       now - lastValidMeasurementAt <= SENSOR_STALE_AFTER_MS &&
@@ -244,7 +220,7 @@ void connectWifi() {
 void maintainWifi(uint32_t now) {
   if (WiFi.status() == WL_CONNECTED) return;
   if (!configPortalStarted && now - wifiStartedAt >= WIFI_PRIMARY_TIMEOUT_MS) {
-    const String accessPoint = String("Kachalla-Tank-") +
+    const String accessPoint = String("Smart-Water-Tank-") +
                                String((uint32_t)(ESP.getEfuseMac() & 0xFFFF), HEX);
     configPortalStarted = wifiManager.startConfigPortal(accessPoint.c_str());
   }

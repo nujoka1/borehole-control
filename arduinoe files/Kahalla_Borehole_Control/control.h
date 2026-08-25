@@ -3,7 +3,6 @@
 #include <stdint.h>
 
 enum class PumpState : uint8_t { Off, On };
-enum class ControlMode : uint8_t { Automatic, Manual };
 enum class SensorStatus : uint8_t { Initializing, Healthy, Timeout, OutOfRange };
 
 struct ControlConfig {
@@ -24,7 +23,6 @@ struct Measurement {
 
 struct ControlState {
   PumpState pump = PumpState::Off;
-  ControlMode mode = ControlMode::Automatic;
   bool upper_limit_latched = false;
   bool runtime_lockout = false;
   uint32_t pump_started_at_ms = 0;

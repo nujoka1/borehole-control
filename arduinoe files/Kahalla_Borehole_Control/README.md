@@ -25,7 +25,7 @@ privately with the sketch, but never commit it to GitHub or publish it. The
 included `secrets.example.h` is only a safe template.
 
 The sketch first tries the Wi-Fi credentials in `secrets.h`. If that network is
-unavailable, it opens a temporary access point named `Kachalla-Tank-xxxx` for
+unavailable, it opens a temporary access point named `Smart-Water-Tank-xxxx` for
 Wi-Fi setup.
 
 Do not reuse one device token on multiple ESP32 boards. Provision a separate

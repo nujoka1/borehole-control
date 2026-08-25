@@ -2,6 +2,9 @@
 
 #include "control.h"
 
+void setUp() {}
+void tearDown() {}
+
 void test_level_is_calculated_as_percentage() {
   ControlConfig config;
   config.usable_tank_depth_cm = 100.0F;
