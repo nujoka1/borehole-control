@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Smart Water Tank - Owner Handover Guide</title>
+  <style>
+    @page { size: A4; margin: 2.1cm 1.9cm; }
+    body { font-family: Arial, sans-serif; color: #17253b; font-size: 10.5pt; line-height: 1.48; }
+    h1, h2, h3 { color: #0b559f; page-break-after: avoid; }
+    h1 { font-size: 26pt; margin: 16pt 0 7pt; }
+    h2 { font-size: 17pt; border-bottom: 1px solid #b8d5ee; padding-bottom: 4pt; margin-top: 22pt; }
+    h3 { font-size: 12.5pt; margin: 16pt 0 5pt; }
+    p { margin: 6pt 0 9pt; }
+    ul, ol { margin: 5pt 0 10pt 20pt; }
+    li { margin-bottom: 4pt; }
+    table { width: 100%; border-collapse: collapse; margin: 10pt 0 15pt; page-break-inside: avoid; }
+    th { background: #0b559f; color: white; text-align: left; }
+    th, td { border: 1px solid #adc4d8; padding: 7pt; vertical-align: top; }
+    tr:nth-child(even) td { background: #f3f8fc; }
+    a { color: #075eaa; }
+    .cover { text-align: center; min-height: 22cm; padding-top: 1.5cm; page-break-after: always; }
+    .cover img { width: 125px; height: 125px; }
+    .subtitle { font-size: 15pt; color: #49657e; }
+    .meta { margin: 35pt auto 0; width: 82%; border-top: 2px solid #1a88df; padding-top: 15pt; }
+    .meta p { margin: 6pt; }
+    .callout { background: #edf7ff; border-left: 5px solid #1686db; padding: 10pt 12pt; margin: 12pt 0; }
+    .warning { background: #fff5e5; border-left-color: #d98715; }
+    .danger { background: #fff0f0; border-left-color: #d13f3f; }
+    .small { font-size: 9pt; color: #5b6d7d; }
+    .status { font-weight: bold; color: #0b7940; }
+    .page-break { page-break-before: always; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <img src="../public/icon-512.png" width="125" height="125" alt="Smart Water Tank logo">
+    <h1>Smart Water Tank</h1>
+    <p class="subtitle">Owner Handover, Operation and Administration Guide</p>
+    <div class="meta">
+      <p><strong>System owner:</strong> Ahmad K. Galadima</p>
+      <p><strong>Owner account:</strong> ahmadkgaladima@gmail.com</p>
+      <p><strong>Full-stack and embedded developer:</strong> Joseph Nuhu Kalba</p>
+      <p><strong>Version:</strong> 1.0</p>
+      <p><strong>Handover date:</strong> 25 August 2026</p>
+    </div>
+    <p class="small" style="margin-top:55pt">This document explains ownership, normal operation, administration, installation boundaries, maintenance and future responsibilities.</p>
+  </section>
+
+  <h2>1. Purpose of this document</h2>
+  <p>This guide gives the system owner the information needed to operate and administer the Smart Water Tank system responsibly. It covers the web dashboard, Android application, ESP32 controller, Supabase backend, account management, automatic pump thresholds, security, maintenance and support handover.</p>
+  <div class="callout"><strong>Important:</strong> Software builds and automated tests have passed, but the physical ESP32, ultrasonic sensor, relay, contactor and pump installation must still be commissioned and verified on the real hardware by competent personnel.</div>
+
+  <h2>2. System summary</h2>
+  <p>Smart Water Tank monitors the water level in a storage tank and automatically controls filling. An ultrasonic sensor reports the distance to the water surface. The ESP32 converts this distance to tank level, applies safety checks and controls the relay command.</p>
+  <p>The system consists of:</p>
+  <ul>
+    <li><strong>ESP32 firmware:</strong> measures tank level and performs local automatic pump decisions.</li>
+    <li><strong>Ultrasonic sensor:</strong> measures the distance between the sensor and water surface.</li>
+    <li><strong>Relay/contactor interface:</strong> receives the ESP32 pump command; it must be correctly isolated and electrically rated.</li>
+    <li><strong>Supabase backend:</strong> provides authentication, authorization, telemetry storage, alerts, settings and device communication.</li>
+    <li><strong>Web dashboard:</strong> provides browser-based monitoring and administration.</li>
+    <li><strong>Android APK:</strong> packages the same dashboard functions for an Android phone.</li>
+  </ul>
+
+  <h2>3. Owner access and important links</h2>
+  <table>
+    <tr><th>Item</th><th>Details</th></tr>
+    <tr><td>Production dashboard</td><td><a href="https://nujoka1.github.io/borehole-control/">https://nujoka1.github.io/borehole-control/</a></td></tr>
+    <tr><td>GitHub repository</td><td><a href="https://github.com/nujoka1/borehole-control">https://github.com/nujoka1/borehole-control</a></td></tr>
+    <tr><td>Owner account</td><td>ahmadkgaladima@gmail.com</td></tr>
+    <tr><td>Device code</td><td>SMART_WATER_TANK_01</td></tr>
+    <tr><td>Android file</td><td>Smart-Water-Tank-v1.0.apk</td></tr>
+    <tr><td>Arduino handoff folder</td><td>Smart_Water_Tank_Arduino</td></tr>
+  </table>
+  <p>Passwords, device tokens, Supabase secret keys and signing credentials are intentionally not written in this document. They must be transferred and stored privately.</p>
+
+  <h2>4. What the owner can do</h2>
+  <ul>
+    <li>Sign in securely using the assigned owner account.</li>
+    <li>View live tank level, water height, pump state and device connectivity.</li>
+    <li>Review recent readings, alerts, activity and configuration delivery.</li>
+    <li>Configure the lower limit, upper limit and usable tank depth.</li>
+    <li>Create Viewer or Operator accounts and assign them to the tank.</li>
+    <li>Use light or dark appearance and access the built-in guidance pages.</li>
+  </ul>
+  <div class="callout warning"><strong>Automatic-only design:</strong> The application does not provide manual pump ON/OFF controls or a control-mode switch. This is intentional. The ESP32 remains responsible for automatic control and safety interlocks.</div>
+
+  <h2>5. Automatic pump operation</h2>
+  <p>The controller uses two thresholds to prevent rapid switching:</p>
+  <ul>
+    <li><strong>Lower limit:</strong> when the level falls to or below this value, the ESP32 may start filling after validating the sensor and safety state.</li>
+    <li><strong>Upper limit:</strong> when the level reaches this value, the ESP32 stops filling.</li>
+  </ul>
+  <p>The standard starting values are 60% for the lower limit and 95% for the upper limit. The two limits must remain at least five percentage points apart. The correct values should be selected based on the real tank, water demand and pump installation.</p>
+  <p>Local ESP32 operation does not depend on continuous internet access. If Wi-Fi or Supabase is temporarily unavailable, live monitoring stops, but the controller can continue its local automatic logic. Sensor failure, stale measurements and maximum runtime conditions request a safe pump-OFF state.</p>
+
+  <h2>6. Dashboard and Android application</h2>
+  <h3>Home</h3>
+  <p>Shows tank percentage, calculated water height, pump status, lower and upper limits, latest update time and overall system status.</p>
+  <h3>History</h3>
+  <p>Shows recent tank readings and trends. A history value is evidence of data received by the backend; it is not a substitute for checking the physical tank when readings appear abnormal.</p>
+  <h3>Alerts</h3>
+  <p>Shows sensor faults, device events and configuration delivery results. Repeated faults should be investigated rather than repeatedly cleared or ignored.</p>
+  <h3>Settings</h3>
+  <p>Allows threshold and tank-depth configuration, appearance selection, user creation, guidance, application information and sign-out.</p>
+  <h3>Installing the APK</h3>
+  <ol>
+    <li>Copy <strong>Smart-Water-Tank-v1.0.apk</strong> to the Android phone through a trusted private channel.</li>
+    <li>Allow installation from the selected file manager when Android requests permission.</li>
+    <li>Install the APK, open Smart Water Tank and sign in.</li>
+    <li>Disable the temporary “install unknown apps” permission afterward if it is no longer required.</li>
+  </ol>
+  <p class="small">The supplied APK is debug-signed for direct installation. Publishing through Google Play requires an owner-controlled release signing key, a release build and store compliance preparation.</p>
+
+  <h2>7. Creating and managing users</h2>
+  <p>Only a tank owner can create a user. In the application, open <strong>Settings → Create user</strong>, then enter the full name, email address, temporary password and access level.</p>
+  <table>
+    <tr><th>Role</th><th>Intended access</th></tr>
+    <tr><td>Owner</td><td>System administration and ownership. The existing owner role is managed deliberately and is not offered in the routine user-creation form.</td></tr>
+    <tr><td>Operator</td><td>Monitoring plus permitted automatic configuration such as tank thresholds.</td></tr>
+    <tr><td>Viewer</td><td>Monitoring access without configuration authority.</td></tr>
+  </table>
+  <p>After creation, Supabase attempts to send a secure one-time sign-in link. The email is optional: the new user can ignore it and sign in using the temporary password. If mail delivery is unavailable, the account is still created and the application tells the owner to share the temporary password privately.</p>
+  <div class="callout"><strong>Good practice:</strong> Give every person an individual account. Do not share the owner password. Remove access promptly when a person no longer needs the system.</div>
+
+  <h2>8. Wi-Fi setup and recovery</h2>
+  <p>The ESP32 first tries its configured Wi-Fi network. If it cannot connect, it can open a temporary setup network named <strong>Smart-Water-Tank-xxxx</strong>. Connect a phone to that network and use the captive portal to select the installation Wi-Fi.</p>
+  <p>If the device appears offline:</p>
+  <ol>
+    <li>Confirm the ESP32 has stable power.</li>
+    <li>Confirm the router and internet connection are available.</li>
+    <li>Confirm the configured Wi-Fi network is within range.</li>
+    <li>Check the status LED and Serial Monitor at 115200 baud if technical diagnosis is required.</li>
+    <li>Do not assume “offline” means local automatic control has stopped.</li>
+  </ol>
+
+  <h2>9. ESP32 firmware handover</h2>
+  <p>The owner or technician should copy the complete <strong>Smart_Water_Tank_Arduino</strong> folder. The folder and its main file <strong>Smart_Water_Tank_Arduino.ino</strong> must keep matching names.</p>
+  <p>Arduino IDE requirements:</p>
+  <ul>
+    <li>Board package: <strong>esp32 by Espressif Systems 3.3.11</strong></li>
+    <li>Board selection: <strong>ESP32 Dev Module</strong></li>
+    <li>Library: <strong>ArduinoJson 7.4.2</strong></li>
+    <li>Library: <strong>WiFiManager 2.0.17</strong></li>
+    <li>Serial Monitor: <strong>115200 baud</strong></li>
+  </ul>
+  <div class="callout danger"><strong>Private file:</strong> The folder contains <strong>secrets.h</strong>, which holds the device credential and endpoints. Never publish this file on GitHub or send it through a public channel. Each future controller should have a separate device code and token.</div>
+
+  <h2>10. Hardware and electrical responsibilities</h2>
+  <table>
+    <tr><th>Function</th><th>ESP32 GPIO</th></tr>
+    <tr><td>Ultrasonic ECHO</td><td>14</td></tr>
+    <tr><td>Ultrasonic TRIG</td><td>27</td></tr>
+    <tr><td>Buzzer</td><td>26</td></tr>
+    <tr><td>Status LED</td><td>25</td></tr>
+    <tr><td>Relay command</td><td>33</td></tr>
+  </table>
+  <ul>
+    <li>Do not power a pump or contactor coil directly from an ESP32 GPIO.</li>
+    <li>Use a correctly rated and isolated relay/driver interface.</li>
+    <li>Limit a 5 V ultrasonic ECHO output to an ESP32-safe input voltage.</li>
+    <li>Provide correctly rated breaker, overload protection, contactor, earthing and cabling.</li>
+    <li>Use a moisture-resistant enclosure with cable protection and strain relief.</li>
+    <li>Mains-voltage work must be completed or inspected by a qualified electrician.</li>
+  </ul>
+
+  <h2>11. Commissioning checklist</h2>
+  <ol>
+    <li>Verify continuity and absence of power-rail shorts with power disconnected.</li>
+    <li>Power only the low-voltage controller and measure supply and ECHO voltages.</li>
+    <li>Verify sensor distance readings at several known water depths.</li>
+    <li>Confirm configured usable tank depth and sensor mounting offset.</li>
+    <li>Test relay polarity without connecting the pump.</li>
+    <li>Test automatic lower-limit start and upper-limit stop safely.</li>
+    <li>Disconnect the sensor and confirm the relay command goes OFF.</li>
+    <li>Disconnect Wi-Fi and confirm local automatic behavior.</li>
+    <li>Commission the actual contactor and pump under qualified supervision.</li>
+    <li>Record the final thresholds, measured voltages, relay polarity and test results.</li>
+  </ol>
+
+  <h2>12. Security and ownership responsibilities</h2>
+  <ul>
+    <li>Protect the owner email account with a strong unique password and multi-factor authentication where available.</li>
+    <li>Enable Supabase leaked-password protection and configure production SMTP for reliable mail delivery.</li>
+    <li>Keep Supabase secret/service-role keys out of browsers, APKs, firmware and public repositories.</li>
+    <li>Rotate a device token if it is exposed, then update both the database hash and private firmware configuration.</li>
+    <li>Review users and device memberships periodically.</li>
+    <li>Keep backups of source code, database configuration, signing keys and installation records.</li>
+    <li>Keep the GitHub repository and Supabase project under accounts controlled by the owner or an agreed organization.</li>
+  </ul>
+
+  <h2>13. Routine maintenance</h2>
+  <table>
+    <tr><th>Frequency</th><th>Recommended activity</th></tr>
+    <tr><td>Weekly</td><td>Review offline periods, unusual levels, sensor faults and pump activity.</td></tr>
+    <tr><td>Monthly</td><td>Inspect sensor mounting, enclosure, moisture, corrosion, terminals and cables.</td></tr>
+    <tr><td>After power or pump faults</td><td>Review alerts, verify automatic operation and inspect electrical protection.</td></tr>
+    <tr><td>Periodically</td><td>Review user access, update dependencies, rotate credentials where necessary and verify backups.</td></tr>
+  </table>
+
+  <h2>14. Troubleshooting guide</h2>
+  <table>
+    <tr><th>Symptom</th><th>What to check</th></tr>
+    <tr><td>Cannot sign in</td><td>Email spelling, temporary password, password reset, internet connection and Supabase Auth status.</td></tr>
+    <tr><td>Create User section missing</td><td>Confirm the signed-in account is the owner of SMART_WATER_TANK_01, then sign out and sign in again.</td></tr>
+    <tr><td>User created but email not received</td><td>Spam folder, Supabase SMTP configuration, email rate limits and Auth redirect URL. The temporary password remains usable.</td></tr>
+    <tr><td>Device offline</td><td>ESP32 power, Wi-Fi, router internet, signal strength and device credential.</td></tr>
+    <tr><td>Water level unavailable</td><td>Sensor power, ECHO voltage, wiring, alignment, condensation and obstructions.</td></tr>
+    <tr><td>Pump remains stopped</td><td>Tank level, sensor health, runtime lockout, relay circuit and electrical protection.</td></tr>
+    <tr><td>Incorrect level</td><td>Measured usable depth, mounting offset, sensor position and water-surface turbulence.</td></tr>
+  </table>
+
+  <h2>15. Verified status and remaining limitations</h2>
+  <table>
+    <tr><th>Area</th><th>Status</th></tr>
+    <tr><td>React dashboard type-check, lint, tests and production build</td><td class="status">PASS</td></tr>
+    <tr><td>GitHub Pages dashboard deployment</td><td class="status">PASS</td></tr>
+    <tr><td>Supabase authenticated admin user function</td><td class="status">ACTIVE</td></tr>
+    <tr><td>Android APK build and signature verification</td><td class="status">PASS — debug-signed</td></tr>
+    <tr><td>PlatformIO ESP32 build</td><td class="status">PASS</td></tr>
+    <tr><td>Automatic-control unit tests</td><td class="status">PASS — 6 tests</td></tr>
+    <tr><td>Physical ESP32, sensor, relay and pump tests</td><td><strong>NOT VERIFIED</strong></td></tr>
+    <tr><td>Actual email inbox delivery</td><td><strong>NOT VERIFIED</strong> — requires production SMTP and a real recipient test</td></tr>
+    <tr><td>Google Play release</td><td><strong>NOT PREPARED</strong> — requires owner-controlled release signing</td></tr>
+  </table>
+
+  <h2>16. Handover statement</h2>
+  <p>The developer has supplied the application source, ESP32 firmware source, Arduino IDE handoff folder, Android installation package, dashboard deployment, backend implementation and supporting documentation described above. The owner accepts responsibility for account custody, authorized-user management, cloud subscription continuity, credential protection, qualified electrical installation, physical commissioning, routine maintenance and decisions about future commercial deployment.</p>
+  <p>This system assists monitoring and automatic filling. It does not replace a physical isolator, properly rated electrical protection, regular tank inspection or qualified maintenance.</p>
+
+  <table style="margin-top:35pt">
+    <tr><td style="height:60pt"><strong>System owner signature:</strong><br><br>________________________________</td><td><strong>Date:</strong><br><br>________________________________</td></tr>
+    <tr><td style="height:60pt"><strong>Developer signature:</strong><br><br>________________________________</td><td><strong>Date:</strong><br><br>________________________________</td></tr>
+  </table>
+</body>
+</html>

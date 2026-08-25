@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://nujoka1.github.io/borehole-control/"><strong>Open live dashboard</strong></a>
+  · <a href="docs/SMART_WATER_TANK_OWNER_HANDOVER.docx"><strong>Owner handover</strong></a>
   · <a href="docs/CLIENT_FLASHING_GUIDE.md">Flash an ESP32</a>
   · <a href="docs/USER_GUIDE.md">User guide</a>
   · <a href="docs/PROJECT_WRITEUP.md">Project write-up</a>
@@ -146,6 +147,7 @@ as exposed and rotate it before any Blynk reuse.
 
 ## Documentation
 
+- [Owner handover, operation and administration guide (Word)](docs/SMART_WATER_TANK_OWNER_HANDOVER.docx)
 - [Project write-up](docs/PROJECT_WRITEUP.md)
 - [Client flashing guide](docs/CLIENT_FLASHING_GUIDE.md)
 - [Installation and wiring](docs/INSTALLATION_AND_WIRING.md)
