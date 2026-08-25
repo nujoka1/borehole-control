@@ -55,5 +55,16 @@ Deno.serve(async (request) => {
     return json(500, { ok: false, error: 'The account could not be assigned to the tank' })
   }
 
-  return json(201, { ok: true, userId: created.user.id })
+  // Email is deliberately best-effort. The temporary password remains usable
+  // even when SMTP is unavailable or the recipient ignores the message.
+  const emailClient = createClient(url, publishableKey, { auth: { autoRefreshToken: false, persistSession: false } })
+  const { error: emailError } = await emailClient.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: false,
+      emailRedirectTo: 'https://nujoka1.github.io/borehole-control/',
+    },
+  })
+
+  return json(201, { ok: true, userId: created.user.id, emailSent: !emailError })
 })
