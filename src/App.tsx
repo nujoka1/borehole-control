@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Activity, AlertTriangle, Bell, BookOpen, ChevronRight, CircleHelp, Clock,
   Droplets, Eye, EyeOff, Gauge, History, Info, LogOut, Moon, Radio,
-  RefreshCw, Settings, ShieldCheck, Sun, TrendingUp, UserRound, Wifi, WifiOff, X,
+  RefreshCw, Settings, ShieldCheck, Sun, TrendingUp, UserPlus, UserRound, Wifi, WifiOff, X,
 } from 'lucide-react'
 import { configured, supabase } from './lib/supabase'
 import { isDeviceOnline, normalizedLevel } from './lib/device'
@@ -72,7 +72,7 @@ function Login({ theme, toggleTheme }: { theme: Theme; toggleTheme: () => void }
   }
   return <main className="auth-page">
     <button className="icon-button auth-theme" onClick={toggleTheme} aria-label={`Use ${theme === 'light' ? 'dark' : 'light'} mode`}>{theme === 'light' ? <Moon/> : <Sun/>}</button>
-    <section className="auth-visual"><Brand/><div className="auth-message"><img className="auth-illustration" src="./brand-illustration.png" alt="Connected smart water tank and pump"/><p className="auth-kicker">Automatic water management</p><h1>Your tank,<br/>always protected.</h1><p>Monitor water level, pump health and automatic filling from one secure application.</p></div><small>Kachalla smart water system</small></section>
+    <section className="auth-visual"><Brand/><div className="auth-message"><img className="auth-illustration" src="./brand-illustration.png" alt="Connected smart water tank and pump"/><p className="auth-kicker">Automatic water management</p><h1>Your tank,<br/>always protected.</h1><p>Monitor water level, pump health and automatic filling from one secure application.</p></div><small>Secure automatic tank monitoring</small></section>
     <form className="auth-card" onSubmit={submit}>
       <div className="auth-mobile-brand"><Brand/></div><p className="eyebrow">Administrator access</p><h2>Welcome back</h2><p>Sign in to monitor the assigned smart water tank.</p>
       <label>Email address<input required type="email" autoComplete="email" placeholder={ADMIN_EMAIL} value={email} onChange={event => setEmail(event.target.value)} /></label>
@@ -100,6 +100,7 @@ function Dashboard({ userId, userEmail, theme, toggleTheme }: { userId: string |
   const [loading, setLoading] = useState(!preview)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [isAdmin, setIsAdmin] = useState(preview)
   const load = useCallback(async () => {
     if (!supabase) { setLoading(false); return }
     setError('')
@@ -107,15 +108,16 @@ function Dashboard({ userId, userEmail, theme, toggleTheme }: { userId: string |
     const next = devices?.[0] as Device | undefined
     if (deviceError || !next) { setError(deviceError?.message ?? 'No smart water tank is assigned to this account.'); setLoading(false); return }
     setDevice(next)
-    const [{ data: readings, error: readingError }, { data: storedSettings }, { data: storedCommands }, { data: storedEvents }] = await Promise.all([
+    const [{ data: readings, error: readingError }, { data: storedSettings }, { data: storedCommands }, { data: storedEvents }, { data: membership }] = await Promise.all([
       supabase.from('borehole_readings').select('*').eq('device_id', next.id).order('received_at', { ascending: false }).limit(200),
       supabase.from('borehole_device_settings').select('*').eq('device_id', next.id).maybeSingle(),
       supabase.from('borehole_commands').select('id,command_type,status,requested_at,result_message').eq('device_id', next.id).order('requested_at', { ascending: false }).limit(20),
       supabase.from('borehole_events').select('id,event_type,severity,message,created_at').eq('device_id', next.id).order('created_at', { ascending: false }).limit(50),
+      supabase.from('borehole_device_members').select('role').eq('device_id', next.id).maybeSingle(),
     ])
     if (readingError) setError(readingError.message)
     const items = (readings ?? []) as Reading[]
-    setReading(items[0] ?? null); setHistory(items); setSettings(storedSettings as DeviceSettings | null); setCommands((storedCommands ?? []) as DeviceCommand[]); setEvents((storedEvents ?? []) as DeviceEvent[]); setLoading(false)
+    setReading(items[0] ?? null); setHistory(items); setSettings(storedSettings as DeviceSettings | null); setCommands((storedCommands ?? []) as DeviceCommand[]); setEvents((storedEvents ?? []) as DeviceEvent[]); setIsAdmin(membership?.role === 'owner'); setLoading(false)
   }, [])
   useEffect(() => {
     void load(); if (!supabase) return
@@ -145,7 +147,7 @@ function Dashboard({ userId, userEmail, theme, toggleTheme }: { userId: string |
       {tab === 'home' && <Home reading={reading} settings={settings} events={events} online={online} level={level}/>}
       {tab === 'history' && <HistoryPage chart={chart} history={history}/>}
       {tab === 'alerts' && <Alerts events={events} commands={commands} reading={reading} settings={settings} online={online}/>}
-      {tab === 'settings' && <SettingsPage settings={settings} device={device} userEmail={userEmail} theme={theme} toggleTheme={toggleTheme} send={send} showInfo={setInfo}/>}
+      {tab === 'settings' && <SettingsPage settings={settings} device={device} userEmail={userEmail} isAdmin={isAdmin} theme={theme} toggleTheme={toggleTheme} send={send} showInfo={setInfo}/>}
     </main>
     <nav className="bottom-nav" aria-label="Primary navigation"><Nav tab="home" current={tab} set={setTab} icon={<Gauge/>} label="Home"/><Nav tab="history" current={tab} set={setTab} icon={<History/>} label="History"/><Nav tab="alerts" current={tab} set={setTab} icon={<Bell/>} label="Alerts"/><Nav tab="settings" current={tab} set={setTab} icon={<Settings/>} label="Settings"/></nav>
     {notice && <div className="toast" role="status"><span>{notice}</span><button onClick={() => setNotice('')}>Dismiss</button></div>}
@@ -163,7 +165,7 @@ function Home({ reading, settings, events, online, level }: { reading: Reading |
     <section className="tank-overview card">
       <div className="tank-visual"><div className="tank-shell"><div className="tank-shine"/><div className="water" style={{ height: `${level ?? 0}%` }}/></div><div className="depth-scale"><span>{depth ?? '—'} cm</span><span>{depth ? Math.round(depth / 2) : '—'} cm</span><span>0 cm</span></div></div>
       <div className="tank-copy"><p className="eyebrow">Water level</p><strong>{level === null ? '—' : `${Math.round(level)}%`}</strong><p>{waterHeight?.toFixed(0) ?? '—'} cm of {depth ?? '—'} cm</p><div className="tank-mini-grid"><div><b>{waterHeight?.toFixed(0) ?? '—'} cm</b><small>Water height</small></div><div><b>{depth ?? '—'} cm</b><small>Tank depth</small></div></div></div>
-      <div className="threshold-track"><span style={{ width: `${settings?.lower_limit_percent ?? 60}%` }}/><i style={{ left: `${settings?.lower_limit_percent ?? 60}%` }}><b>Start</b>{settings?.lower_limit_percent ?? 60}%</i><i style={{ left: `${settings?.upper_limit_percent ?? 95}%` }}><b>Stop</b>{settings?.upper_limit_percent ?? 95}%</i></div>
+      <div className="threshold-track"><span style={{ width: `${settings?.lower_limit_percent ?? 60}%` }}/><i style={{ left: `${settings?.lower_limit_percent ?? 60}%` }}><b>Lower limit</b>{settings?.lower_limit_percent ?? 60}%</i><i style={{ left: `${settings?.upper_limit_percent ?? 95}%` }}><b>Upper limit</b>{settings?.upper_limit_percent ?? 95}%</i></div>
     </section>
     <section className="live-grid card"><article><span className="metric-icon"><Droplets/></span><div><small>Water level</small><strong>{level === null ? 'Unavailable' : `${Math.round(level)}%`}</strong><em>{status.short}</em></div></article><article><span className={`metric-icon pump ${pumpOn ? 'active' : ''}`}><Activity/></span><div><small>Pump status</small><strong className={pumpOn ? 'good' : ''}>{pumpOn ? 'RUNNING' : 'STOPPED'}</strong><em>{online ? 'Live status' : 'Last known status'}</em></div></article></section>
     <section className={`card system-status ${status.tone}`}><div className="status-icon"><ShieldCheck/></div><div><p className="eyebrow">Tank status</p><h2>{status.title}</h2><p>{status.message}</p></div><footer><span><Clock/>Updated {formatTime(reading?.received_at, true)}</span><span><RefreshCw/>Auto refresh</span></footer></section>
@@ -192,8 +194,24 @@ function Alerts({ events, commands, reading, settings, online }: { events: Devic
   return <section className="page-stack"><PageTitle eyebrow="System record" title="Alerts & activity" description="Safety status and controller events."/><section className={`card alert-overview ${current.tone}`}><ShieldCheck/><div><b>{current.title}</b><p>{current.message}</p></div></section><section className="card list-card"><h2>System events</h2>{events.length ? events.map(item => <article key={item.id}><span className={`event-icon ${item.severity}`}><Bell/></span><div><b>{item.message}</b><small>{item.event_type.replaceAll('_', ' ')}</small></div><time>{formatTime(item.created_at)}</time></article>) : <Empty icon={<Bell/>} text="No system alerts."/>}</section>{configurationCommands.length > 0 && <section className="card list-card"><h2>Configuration delivery</h2>{configurationCommands.map(item => <article key={item.id}><span className={`command-state ${item.status}`}/><div><b>Pump thresholds</b><small>{item.status}{item.result_message ? ` · ${item.result_message}` : ''}</small></div><time>{formatTime(item.requested_at)}</time></article>)}</section>}</section>
 }
 
-function SettingsPage({ settings, device, userEmail, theme, toggleTheme, send, showInfo }: { settings: DeviceSettings | null; device: Device | null; userEmail?: string; theme: Theme; toggleTheme: () => void; send: (type: string, payload: Record<string, unknown>) => Promise<void>; showInfo: (page: InfoPage) => void }) {
-  return <section className="page-stack"><PageTitle eyebrow="Configuration" title="Settings" description="Automatic filling and application preferences."/><SettingsPanel settings={settings} onSave={payload => send('set_config', payload)}/><section className="card settings-list"><h2>Account & application</h2><SettingRow icon={<UserRound/>} title={userEmail ?? ADMIN_EMAIL} detail="Assigned administrator"/><SettingButton icon={<Moon/>} title="Appearance" detail={theme === 'light' ? 'Light mode' : 'Dark mode'} onClick={toggleTheme}/><SettingButton icon={<BookOpen/>} title="User guide" detail="Automatic operation and safe use" onClick={() => showInfo('guide')}/><SettingButton icon={<Info/>} title="About Smart Water Tank" detail="Device and application information" onClick={() => showInfo('about')}/><SettingButton icon={<ShieldCheck/>} title="Terms & privacy" detail="Responsible use and data handling" onClick={() => showInfo('terms')}/>{configured && <SettingButton danger icon={<LogOut/>} title="Sign out" detail="End this secure session" onClick={() => void supabase?.auth.signOut()}/>}</section><section className="device-meta"><p>{device?.name ?? 'Smart tank controller'} · Firmware {device?.firmware_version ?? 'unknown'}</p><p>Device ID: {device?.device_code ?? 'Not assigned'}</p></section></section>
+function SettingsPage({ settings, device, userEmail, isAdmin, theme, toggleTheme, send, showInfo }: { settings: DeviceSettings | null; device: Device | null; userEmail?: string; isAdmin: boolean; theme: Theme; toggleTheme: () => void; send: (type: string, payload: Record<string, unknown>) => Promise<void>; showInfo: (page: InfoPage) => void }) {
+  return <section className="page-stack"><PageTitle eyebrow="Configuration" title="Settings" description="Automatic filling and application preferences."/><SettingsPanel settings={settings} onSave={payload => send('set_config', payload)}/>{isAdmin && device && <AdminUserPanel deviceId={device.id}/>}<section className="card settings-list"><h2>Account & application</h2><SettingRow icon={<UserRound/>} title={userEmail ?? ADMIN_EMAIL} detail={isAdmin ? 'Tank owner and administrator' : 'Assigned user'}/><SettingButton icon={<Moon/>} title="Appearance" detail={theme === 'light' ? 'Light mode' : 'Dark mode'} onClick={toggleTheme}/><SettingButton icon={<BookOpen/>} title="User guide" detail="Automatic operation and safe use" onClick={() => showInfo('guide')}/><SettingButton icon={<Info/>} title="About Smart Water Tank" detail="Device and application information" onClick={() => showInfo('about')}/><SettingButton icon={<ShieldCheck/>} title="Terms & privacy" detail="Responsible use and data handling" onClick={() => showInfo('terms')}/>{configured && <SettingButton danger icon={<LogOut/>} title="Sign out" detail="End this secure session" onClick={() => void supabase?.auth.signOut()}/>}</section><section className="device-meta"><p>{device?.name ?? 'Smart tank controller'} · Firmware {device?.firmware_version ?? 'unknown'}</p><p>Device ID: {device?.device_code ?? 'Not assigned'}</p></section></section>
+}
+
+function AdminUserPanel({ deviceId }: { deviceId: string }) {
+  const [email, setEmail] = useState(''), [displayName, setDisplayName] = useState(''), [password, setPassword] = useState(''), [role, setRole] = useState<'operator' | 'viewer'>('viewer')
+  const [busy, setBusy] = useState(false), [message, setMessage] = useState('')
+  const createUser = async (event: React.FormEvent) => {
+    event.preventDefault(); setMessage('')
+    if (!supabase) return
+    setBusy(true)
+    const { data, error } = await supabase.functions.invoke('admin-create-user', { body: { email: email.trim(), displayName: displayName.trim(), password, role, deviceId } })
+    setBusy(false)
+    if (error) { setMessage(error.message); return }
+    if (!data?.ok) { setMessage(data?.error ?? 'The user could not be created.'); return }
+    setEmail(''); setDisplayName(''); setPassword(''); setRole('viewer'); setMessage('User created and assigned to this tank.')
+  }
+  return <form className="card admin-user-card" onSubmit={createUser}><div className="settings-title"><span><UserPlus/></span><div><h2>Create user</h2><p>Create a secure account and assign access to this smart water tank.</p></div></div><div className="admin-user-fields"><label>Full name<input required minLength={1} maxLength={120} value={displayName} onChange={event => setDisplayName(event.target.value)}/></label><label>Email address<input required type="email" autoComplete="off" value={email} onChange={event => setEmail(event.target.value)}/></label><label>Temporary password<input required type="password" minLength={8} maxLength={128} autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)}/></label><label>Access level<select value={role} onChange={event => setRole(event.target.value as 'operator' | 'viewer')}><option value="viewer">Viewer — monitoring only</option><option value="operator">Operator — monitoring and thresholds</option></select></label></div><button className="primary" disabled={busy}>{busy ? 'Creating user…' : 'Create and assign user'}</button>{message && <p className="form-message" role="status">{message}</p>}<small className="admin-note">Give the temporary password to the user privately and ask them to reset it after signing in.</small></form>
 }
 
 function SettingsPanel({ settings, onSave }: { settings: DeviceSettings | null; onSave: (payload: Record<string, unknown>) => Promise<void> }) {
@@ -206,7 +224,7 @@ function SettingsPanel({ settings, onSave }: { settings: DeviceSettings | null; 
 
 function InfoSheet({ page, close }: { page: Exclude<InfoPage, null>; close: () => void }) {
   const content = {
-    about: { icon: <Droplets/>, title: 'About Smart Water Tank', body: <><p>Smart Water Tank is the monitoring companion for the Kachalla ESP32 water controller. It presents live tank level, pump state, automatic thresholds, alerts and history while the ESP32 keeps control local.</p><h3>Safety boundary</h3><p>The application does not replace correct electrical installation, relay protection, tank inspection or qualified maintenance.</p></> },
+    about: { icon: <Droplets/>, title: 'About Smart Water Tank', body: <><p>Smart Water Tank presents live tank level, pump state, automatic thresholds, alerts and history while the ESP32 keeps control local.</p><h3>Safety boundary</h3><p>The application does not replace correct electrical installation, relay protection, tank inspection or qualified maintenance.</p></> },
     guide: { icon: <CircleHelp/>, title: 'User guide', body: <><h3>Automatic operation</h3><p>The pump starts at the lower threshold and stops at the upper threshold. The ESP32 applies these rules locally even without internet.</p><h3>Attention required</h3><p>Check power, Wi-Fi and the level sensor when the device is offline or reports a fault. Never bypass controller or electrical protection.</p><h3>Settings</h3><p>Enter the measured usable tank depth and keep at least five percentage points between start and stop levels.</p></> },
     terms: { icon: <ShieldCheck/>, title: 'Terms & privacy', body: <><h3>Responsible operation</h3><p>Only authorized users may access the assigned tank. The automatic controller must not be used as the only emergency isolation method.</p><h3>Data</h3><p>The service processes account identity, telemetry, configuration commands and audit events. Access must remain restricted by server-side membership policies.</p><h3>Notice</h3><p>This summary requires jurisdiction-specific legal and privacy review before commercial release.</p></> },
   }[page]
